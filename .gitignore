@@ -1,0 +1,29 @@
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Docker
+docker/mysql/data/
+
+# Yii2 basic
+/vendor/
+/runtime/
+/web/assets/
+/web/index-test.php
+
+# Composer
+/composer.phar
+/composer.lock
+
+# Logs
+*.log
+
+# Cache
+/cache/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
