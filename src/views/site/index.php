@@ -9,6 +9,7 @@ use yii\widgets\Pjax;
 /** @var yii\data\ActiveDataProvider $dataProvider */
 /** @var app\models\Post $model */
 
+$this->title = 'Создание сообщений - StoryValut';
 ?>
 <div class="site-index">
     <div class="row">

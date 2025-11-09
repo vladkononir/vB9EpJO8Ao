@@ -54,17 +54,32 @@ class Post extends ActiveRecord
     public function rules(): array
     {
         return [
-            [['author_name', 'email', 'message'], 'required'],
-            ['author_name', 'string', 'min' => 2, 'max' => 15],
-            ['email', 'email'],
-            ['message', 'string', 'min' => 5, 'max' => 1000],
-            ['message', 'validateAllowedHtmlTags'],
-            ['message', 'filter', 'filter' => [self::class, 'stripTagsFilter']],
-            ['message', 'filter', 'filter' => 'trim'],
-            ['message', 'validateNotEmpty'],
-            ['captcha', 'required'],
-            ['captcha', 'captcha', 'captchaAction' => 'site/captcha'],
+            [['author_name', 'email', 'message'], 'required', 'on' => 'create'],
+            ['author_name', 'string', 'min' => 2, 'max' => 15, 'on' => 'create'],
+            ['email', 'email', 'on' => 'create'],
+            ['message', 'string', 'min' => 5, 'max' => 1000, 'on' => 'create'],
+            ['message', 'validateAllowedHtmlTags', 'on' => 'create'],
+            ['message', 'filter', 'filter' => [self::class, 'stripTagsFilter'], 'on' => 'create'],
+            ['message', 'filter', 'filter' => 'trim', 'on' => 'create'],
+            ['message', 'validateNotEmpty', 'on' => 'create'],
+            ['captcha', 'required', 'on' => 'create'],
+            ['captcha', 'captcha', 'captchaAction' => 'site/captcha', 'on' => 'create'],
+
+            [['message'], 'required', 'on' => 'update'],
+            ['message', 'string', 'min' => 5, 'max' => 1000, 'on' => 'update'],
+            ['message', 'validateAllowedHtmlTags', 'on' => 'update'],
+            ['message', 'filter', 'filter' => [self::class, 'stripTagsFilter'], 'on' => 'update'],
+            ['message', 'filter', 'filter' => 'trim', 'on' => 'update'],
+            ['message', 'validateNotEmpty', 'on' => 'update'],
         ];
+    }
+
+    public function scenarios()
+    {
+        $scenarios = parent::scenarios();
+        $scenarios['create'] = ['author_name', 'email', 'message', 'captcha'];
+        $scenarios['update'] = ['message'];
+        return $scenarios;
     }
 
     public function validateAllowedHtmlTags(string $attribute): void

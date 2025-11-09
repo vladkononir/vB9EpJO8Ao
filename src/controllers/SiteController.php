@@ -2,6 +2,7 @@
 
 namespace app\controllers;
 
+use Yii;
 use app\models\Post;
 use yii\data\ActiveDataProvider;
 use yii\web\Controller;
@@ -36,6 +37,7 @@ class SiteController extends Controller
         ]);
 
         $model = new Post();
+        $model->scenario = 'create';
 
         if ($model->load(\Yii::$app->request->post())) {
             if ($model->save()) {
