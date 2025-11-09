@@ -7,9 +7,14 @@ use Yii;
 use app\models\Post;
 use yii\data\ActiveDataProvider;
 use yii\web\Controller;
+use yii\web\Response;
 
 class SiteController extends Controller
 {
+    const FLASH_SUCCESS_CREATE = 'Сообщение успешно опубликовано! На ваш email отправлены ссылки для управления.';
+    const FLASH_ERROR_CREATE = 'Произошла ошибка при публикации сообщения. Проверьте правильность заполнения формы.';
+    const PAGE_SIZE = 20;
+
     private EmailService $emailService;
 
     public function __construct($id, $module, EmailService $emailService, $config = [])
@@ -20,7 +25,7 @@ class SiteController extends Controller
     /**
      * {@inheritdoc}
      */
-    public function actions()
+    public function actions(): array
     {
         return [
             'error' => [
@@ -33,32 +38,29 @@ class SiteController extends Controller
         ];
     }
 
-    public function actionIndex()
+    public function actionIndex(): string|Response
     {
         $dataProvider = new ActiveDataProvider([
             'query' => Post::find()
                 ->where(['IS', 'deleted_at', null])
                 ->orderBy(['created_at' => SORT_DESC]),
             'pagination' => [
-                'pageSize' => 20,
+                'pageSize' => self::PAGE_SIZE,
             ],
         ]);
 
         $model = new Post();
-        $model->scenario = 'create';
+        $model->scenario = POST::SCENARIO_CREATE;
 
         if ($model->load(\Yii::$app->request->post())) {
             if ($model->save()) {
                 $this->emailService->sendManagementEmail($model);
 
-                Yii::$app->session->setFlash('success',
-                    'Сообщение успешно опубликовано! На ваш email отправлены ссылки для управления.'
-                );
+                Yii::$app->session->setFlash('success', self::FLASH_SUCCESS_CREATE);
+
                 return $this->refresh();
             } else {
-                Yii::$app->session->setFlash('error',
-                    'Произошла ошибка при публикации сообщения. Проверьте правильность заполнения формы.'
-                );
+                Yii::$app->session->setFlash('error', self::FLASH_ERROR_CREATE);
             }
         }
 

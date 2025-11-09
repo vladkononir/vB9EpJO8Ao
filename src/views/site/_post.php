@@ -6,7 +6,7 @@ use yii\helpers\HtmlPurifier;
 /** @var app\models\Post $model */
 /** @var yii\web\View $this */
 
-$postsCount = $model->getPostsCountByIp();
+$postsCount = $model->getPostNumberByIp();
 ?>
 
 <div class="card card-default mb-3" style="cursor: pointer;" onclick="window.location='<?= Yii::$app->urlManager->createUrl(['post/view', 'id' => $model->id]) ?>'">
@@ -24,7 +24,7 @@ $postsCount = $model->getPostsCountByIp();
             <small class="text-muted">
                 <?= Yii::$app->formatter->asRelativeTime($model->created_at) ?> |
                 <?= $model->getMaskedIp() ?> |
-                <?= Yii::t('app', '{n, plural, =0{нет постов} one{# пост} few{# поста} many{# постов} other{# поста}}', ['n' => $postsCount]) ?>
+                <?= $postsCount . ' пост' ?>
             </small>
         </p>
     </div>

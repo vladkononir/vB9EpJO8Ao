@@ -6,36 +6,42 @@ use Yii;
 use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
 
-/**
- * @property int $id
- * @property string $author_name
- * @property string $email
- * @property string $message
- * @property string $ip_address
- * @property int $created_at
- * @property int $updated_at
- * @property int|null $deleted_at
- */
 class Post extends ActiveRecord
 {
     const ALLOWED_HTML_TAGS = '<b><i><s>';
+    const ERROR_ALLOWED_HTML_TAGS = 'Разрешены только HTML теги: <b>, <i>, <s>. Пожалуйста, удалите другие HTML теги из сообщения.';
+    const ERROR_EMPTY_MESSAGE = 'Сообщение не может состоять только из пробелов или HTML тегов.';
+    const ERROR_COOLDOWN = 'Вы можете отправить следующее сообщение только после %s';
+
     const EDIT_TIME_LIMIT = 12 * 3600;
     const DELETE_TIME_LIMIT = 14 * 24 * 3600;
     const POST_COOLDOWN = 3 * 60;
 
+    const AUTHOR_NAME_MIN_LENGTH = 2;
+    const AUTHOR_NAME_MAX_LENGTH = 15;
+    const MESSAGE_MIN_LENGTH = 5;
+    const MESSAGE_MAX_LENGTH = 1000;
+
+    const SCENARIO_CREATE = 'create';
+    const SCENARIO_UPDATE = 'update';
+
+    const ATTR_AUTHOR_NAME = 'author_name';
+    const ATTR_EMAIL = 'email';
+    const ATTR_MESSAGE = 'message';
+    const ATTR_CAPTCHA = 'captcha';
+
+    const LABEL_AUTHOR_NAME = 'Имя автора';
+    const LABEL_EMAIL = 'Email';
+    const LABEL_MESSAGE = 'Сообщение';
+    const LABEL_CAPTCHA = 'Проверочный код';
+
     public $captcha;
 
-    /**
-     * {@inheritdoc}
-     */
     public static function tableName(): string
     {
         return 'posts';
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function behaviors(): array
     {
         return [
@@ -48,37 +54,34 @@ class Post extends ActiveRecord
         ];
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function rules(): array
     {
         return [
-            [['author_name', 'email', 'message'], 'required', 'on' => 'create'],
-            ['author_name', 'string', 'min' => 2, 'max' => 15, 'on' => 'create'],
-            ['email', 'email', 'on' => 'create'],
-            ['message', 'string', 'min' => 5, 'max' => 1000, 'on' => 'create'],
-            ['message', 'validateAllowedHtmlTags', 'on' => 'create'],
-            ['message', 'filter', 'filter' => [self::class, 'stripTagsFilter'], 'on' => 'create'],
-            ['message', 'filter', 'filter' => 'trim', 'on' => 'create'],
-            ['message', 'validateNotEmpty', 'on' => 'create'],
-            ['captcha', 'required', 'on' => 'create'],
-            ['captcha', 'captcha', 'captchaAction' => 'site/captcha', 'on' => 'create'],
+            [[self::ATTR_AUTHOR_NAME, self::ATTR_EMAIL, self::ATTR_MESSAGE], 'required', 'on' => self::SCENARIO_CREATE],
+            [self::ATTR_AUTHOR_NAME, 'string', 'min' => self::AUTHOR_NAME_MIN_LENGTH, 'max' => self::AUTHOR_NAME_MAX_LENGTH, 'on' => self::SCENARIO_CREATE],
+            [self::ATTR_EMAIL, 'email', 'on' => self::SCENARIO_CREATE],
+            [self::ATTR_MESSAGE, 'string', 'min' => self::MESSAGE_MIN_LENGTH, 'max' => self::MESSAGE_MAX_LENGTH, 'on' => self::SCENARIO_CREATE],
+            [self::ATTR_MESSAGE, 'validateAllowedHtmlTags', 'on' => self::SCENARIO_CREATE],
+            [self::ATTR_MESSAGE, 'filter', 'filter' => [self::class, 'stripTagsFilter'], 'on' => self::SCENARIO_CREATE],
+            [self::ATTR_MESSAGE, 'filter', 'filter' => 'trim', 'on' => self::SCENARIO_CREATE],
+            [self::ATTR_MESSAGE, 'validateNotEmpty', 'on' => self::SCENARIO_CREATE],
+            [self::ATTR_CAPTCHA, 'required', 'on' => self::SCENARIO_CREATE],
+            [self::ATTR_CAPTCHA, 'captcha', 'captchaAction' => 'site/captcha', 'on' => self::SCENARIO_CREATE],
 
-            [['message'], 'required', 'on' => 'update'],
-            ['message', 'string', 'min' => 5, 'max' => 1000, 'on' => 'update'],
-            ['message', 'validateAllowedHtmlTags', 'on' => 'update'],
-            ['message', 'filter', 'filter' => [self::class, 'stripTagsFilter'], 'on' => 'update'],
-            ['message', 'filter', 'filter' => 'trim', 'on' => 'update'],
-            ['message', 'validateNotEmpty', 'on' => 'update'],
+            [[self::ATTR_MESSAGE], 'required', 'on' => self::SCENARIO_UPDATE],
+            [self::ATTR_MESSAGE, 'string', 'min' => self::MESSAGE_MIN_LENGTH, 'max' => self::MESSAGE_MAX_LENGTH, 'on' => self::SCENARIO_UPDATE],
+            [self::ATTR_MESSAGE, 'validateAllowedHtmlTags', 'on' => self::SCENARIO_UPDATE],
+            [self::ATTR_MESSAGE, 'filter', 'filter' => [self::class, 'stripTagsFilter'], 'on' => self::SCENARIO_UPDATE],
+            [self::ATTR_MESSAGE, 'filter', 'filter' => 'trim', 'on' => self::SCENARIO_UPDATE],
+            [self::ATTR_MESSAGE, 'validateNotEmpty', 'on' => self::SCENARIO_UPDATE],
         ];
     }
 
-    public function scenarios()
+    public function scenarios(): array
     {
         $scenarios = parent::scenarios();
-        $scenarios['create'] = ['author_name', 'email', 'message', 'captcha'];
-        $scenarios['update'] = ['message'];
+        $scenarios[self::SCENARIO_CREATE] = [self::ATTR_AUTHOR_NAME, self::ATTR_EMAIL, self::ATTR_MESSAGE, self::ATTR_CAPTCHA];
+        $scenarios[self::SCENARIO_UPDATE] = [self::ATTR_MESSAGE];
         return $scenarios;
     }
 
@@ -86,15 +89,10 @@ class Post extends ActiveRecord
     {
         $value = $this->$attribute;
 
-        $withoutAllowedTags = strip_tags($value, self::ALLOWED_HTML_TAGS);
+        $cleanedValue = strip_tags($value, self::ALLOWED_HTML_TAGS);
 
-        $withoutAllTags = strip_tags($withoutAllowedTags);
-
-        if ($withoutAllowedTags !== $withoutAllTags) {
-            $this->addError($attribute,
-                'Разрешены только HTML теги: <b>, <i>, <s>. ' .
-                'Пожалуйста, удалите другие HTML теги из сообщения.'
-            );
+        if ($value !== $cleanedValue) {
+            $this->addError($attribute, self::ERROR_ALLOWED_HTML_TAGS);
         }
     }
 
@@ -108,20 +106,17 @@ class Post extends ActiveRecord
         $value = trim(strip_tags($this->$attribute));
 
         if (empty($value)) {
-            $this->addError($attribute, 'Сообщение не может состоять только из пробелов или HTML тегов.');
+            $this->addError($attribute, self::ERROR_EMPTY_MESSAGE);
         }
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function attributeLabels(): array
     {
         return [
-            'author_name' => 'Имя автора',
-            'email' => 'Email',
-            'message' => 'Сообщение',
-            'captcha' => 'Проверочный код',
+            self::ATTR_AUTHOR_NAME => self::LABEL_AUTHOR_NAME,
+            self::ATTR_EMAIL => self::LABEL_EMAIL,
+            self::ATTR_MESSAGE => self::LABEL_MESSAGE,
+            self::ATTR_CAPTCHA => self::LABEL_CAPTCHA,
         ];
     }
 
@@ -175,6 +170,21 @@ class Post extends ActiveRecord
             ->count();
     }
 
+    public function getPostNumberByIp(): int
+    {
+        return (int) self::find()
+            ->where(['ip_address' => $this->ip_address])
+            ->andWhere(['OR',
+                ['<', 'created_at', $this->created_at],
+                ['AND',
+                    ['=', 'created_at', $this->created_at],
+                    ['<=', 'id', $this->id]
+                ]
+            ])
+            ->andWhere(['IS', 'deleted_at', null])
+            ->count();
+    }
+
     public function getMaskedIp(): string
     {
         if (filter_var($this->ip_address, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
@@ -215,10 +225,10 @@ class Post extends ActiveRecord
             if ($lastPost && (time() - $lastPost->created_at) < self::POST_COOLDOWN) {
                 $nextTime = $lastPost->created_at + self::POST_COOLDOWN;
 
-                $this->addError('message',
-                    'Вы можете отправить следующее сообщение только после ' .
-                    Yii::$app->formatter->asDatetime($nextTime)
-                );
+                $formattedTime = Yii::$app->formatter->asDatetime($nextTime, 'php:d.m.Y H:i');
+
+                $errorMessage = sprintf(self::ERROR_COOLDOWN, $formattedTime);
+                $this->addError(self::ATTR_MESSAGE, $errorMessage);
 
                 return false;
             }

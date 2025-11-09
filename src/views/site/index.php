@@ -10,13 +10,18 @@ use yii\widgets\Pjax;
 /** @var app\models\Post $model */
 
 $this->title = 'Создание сообщений - StoryValut';
+
+$pagination = $dataProvider->getPagination();
+$totalCount = $dataProvider->getTotalCount();
+$currentPage = $pagination->getPage();
+$pageSize = $pagination->getPageSize();
+$start = ($currentPage * $pageSize) + 1;
+$end = min(($currentPage + 1) * $pageSize, $totalCount);
 ?>
 <div class="site-index">
     <div class="row">
         <div class="col-md-8">
-            <h2>Последние сообщения</h2>
-
-            <?php Pjax::begin(['id' => 'posts-pjax']); ?>
+            <h2>Показаны записи <?= $start ?>-<?= $end ?> из <?= $totalCount ?></h2>
 
             <?= ListView::widget([
                 'dataProvider' => $dataProvider,
@@ -24,9 +29,10 @@ $this->title = 'Создание сообщений - StoryValut';
                 'layout' => "{items}\n{pager}",
                 'emptyText' => 'Пока нет сообщений.',
                 'emptyTextOptions' => ['class' => 'alert alert-info'],
+                'pager' => [
+                    'options' => ['class' => 'pagination'],
+                ],
             ]) ?>
-
-            <?php Pjax::end(); ?>
         </div>
 
         <div class="col-md-4">
@@ -37,7 +43,6 @@ $this->title = 'Создание сообщений - StoryValut';
                 <div class="card-body">
                     <?php $form = ActiveForm::begin([
                         'id' => 'post-form',
-                        'options' => ['data-pjax' => 1]
                     ]); ?>
 
                     <?= $form->field($model, 'author_name')->textInput([
