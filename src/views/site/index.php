@@ -1,53 +1,84 @@
 <?php
 
-/** @var yii\web\View $this */
+use yii\helpers\Html;
+use yii\widgets\ListView;
+use yii\widgets\ActiveForm;
+use yii\widgets\Pjax;
 
-$this->title = 'My Yii Application';
+/** @var yii\web\View $this */
+/** @var yii\data\ActiveDataProvider $dataProvider */
+/** @var app\models\Post $model */
+
 ?>
 <div class="site-index">
+    <div class="row">
+        <div class="col-md-8">
+            <h2>Последние сообщения</h2>
 
-    <div class="jumbotron text-center bg-transparent mt-5 mb-5">
-        <h1 class="display-4">Congratulations!</h1>
+            <?php Pjax::begin(['id' => 'posts-pjax']); ?>
 
-        <p class="lead">You have successfully created your Yii-powered application.</p>
+            <?= ListView::widget([
+                'dataProvider' => $dataProvider,
+                'itemView' => '_post',
+                'layout' => "{items}\n{pager}",
+                'emptyText' => 'Пока нет сообщений.',
+                'emptyTextOptions' => ['class' => 'alert alert-info'],
+            ]) ?>
 
-        <p><a class="btn btn-lg btn-success" href="https://www.yiiframework.com">Get started with Yii</a></p>
-    </div>
-
-    <div class="body-content">
-
-        <div class="row">
-            <div class="col-lg-4 mb-3">
-                <h2>Heading</h2>
-
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et
-                    dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
-                    ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-                    fugiat nulla pariatur.</p>
-
-                <p><a class="btn btn-outline-secondary" href="https://www.yiiframework.com/doc/">Yii Documentation &raquo;</a></p>
-            </div>
-            <div class="col-lg-4 mb-3">
-                <h2>Heading</h2>
-
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et
-                    dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
-                    ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-                    fugiat nulla pariatur.</p>
-
-                <p><a class="btn btn-outline-secondary" href="https://www.yiiframework.com/forum/">Yii Forum &raquo;</a></p>
-            </div>
-            <div class="col-lg-4">
-                <h2>Heading</h2>
-
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et
-                    dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
-                    ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-                    fugiat nulla pariatur.</p>
-
-                <p><a class="btn btn-outline-secondary" href="https://www.yiiframework.com/extensions/">Yii Extensions &raquo;</a></p>
-            </div>
+            <?php Pjax::end(); ?>
         </div>
 
+        <div class="col-md-4">
+            <div class="card card-default">
+                <div class="card-header">
+                    <h3 class="card-title">Новое сообщение</h3>
+                </div>
+                <div class="card-body">
+                    <?php $form = ActiveForm::begin([
+                        'id' => 'post-form',
+                        'options' => ['data-pjax' => 1]
+                    ]); ?>
+
+                    <?= $form->field($model, 'author_name')->textInput([
+                        'maxlength' => true,
+                        'placeholder' => 'Ваше имя (2-15 символов)'
+                    ]) ?>
+
+                    <?= $form->field($model, 'email')->textInput([
+                        'maxlength' => true,
+                        'placeholder' => 'your@email.com'
+                    ]) ?>
+
+                    <?= $form->field($model, 'message')->textarea([
+                        'rows' => 6,
+                        'placeholder' => 'Ваше сообщение... (5-1000 символов)',
+                        'maxlength' => 1000
+                    ]) ?>
+
+                    <?= $form->field($model, 'captcha')->widget(\yii\captcha\Captcha::class, [
+                        'template' => '{image}{input}',
+                    ]) ?>
+
+                    <div class="form-group">
+                        <?= Html::submitButton('Опубликовать', ['class' => 'btn btn-primary btn-block']) ?>
+                    </div>
+
+                    <?php ActiveForm::end(); ?>
+                </div>
+            </div>
+
+            <div class="mt-3">
+                <div class="alert alert-info">
+                    <small>
+                        <strong>Правила публикации:</strong><br>
+                        • Разрешены теги: &lt;b&gt;, &lt;i&gt;, &lt;s&gt;<br>
+                        • Сообщения проверяются<br>
+                        • 1 сообщение в 3 минуты<br>
+                        • Редактирование в течение 12 часов<br>
+                        • Удаление в течение 14 дней
+                    </small>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
