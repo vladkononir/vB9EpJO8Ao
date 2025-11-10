@@ -17,8 +17,21 @@ class EmailService
 
     public function sendManagementEmail(Post $post): bool
     {
+        $editLink = Yii::$app->urlManager->createAbsoluteUrl(['post/edit', 'id' => $post->id]);
+        $deleteLink = Yii::$app->urlManager->createAbsoluteUrl(['post/delete', 'id' => $post->id]);
+
+        $editDeadline = Yii::$app->formatter->asDatetime($post->created_at + 12 * 3600, 'dd.MM.yyyy HH:mm');
+        $deleteDeadline = Yii::$app->formatter->asDatetime($post->created_at + 14 * 24 * 3600, 'dd.MM.yyyy HH:mm');
+
         try {
-            $emailSent = Yii::$app->mailer->compose('postManagement', ['post' => $post])
+            $emailSent = Yii::$app->mailer->compose('postManagement', [
+                'post' => $post,
+                'editLink' => $editLink,
+                'deleteLink' => $deleteLink,
+                'editDeadline' => $editDeadline,
+                'deleteDeadline' => $deleteDeadline,
+            ])
+
                 ->setFrom([Yii::$app->params['senderEmail'] ?? self::SENDER_EMAIL => self::SENDER_NAME])
                 ->setTo($post->email)
                 ->setSubject(self::EMAIL_SUBJECT)
