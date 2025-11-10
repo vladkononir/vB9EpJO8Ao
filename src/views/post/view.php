@@ -7,7 +7,7 @@ use yii\helpers\HtmlPurifier;
 /** @var app\models\Post $model */
 
 $this->title = 'Сообщение от ' . Html::encode($model->author_name) . ' - StoryValut';
-$postsCount = $model->getPostsCountByIp();
+$postsCount = $model->getPostNumberByIp();
 ?>
 <div class="post-view">
     <div class="row">
@@ -32,7 +32,7 @@ $postsCount = $model->getPostsCountByIp();
                                 <small class="text-muted">
                                     <?= Yii::$app->formatter->asRelativeTime($model->created_at) ?> |
                                     <?= $model->getMaskedIp() ?> |
-                                    <?= Yii::t('app', '{n, plural, =0{нет постов} one{# пост} few{# поста} many{# постов} other{# поста}}', ['n' => $postsCount]) ?>
+                                    <?= $postsCount . ' пост' ?>
                                 </small>
                             </p>
                         </div>
