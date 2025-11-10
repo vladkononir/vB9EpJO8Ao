@@ -13,7 +13,7 @@ class SiteController extends Controller
 {
     const FLASH_SUCCESS_CREATE = 'Сообщение успешно опубликовано! На ваш email отправлены ссылки для управления.';
     const FLASH_ERROR_CREATE = 'Произошла ошибка при публикации сообщения. Проверьте правильность заполнения формы.';
-    const PAGE_SIZE = 20;
+    const PAGE_SIZE = 5;
 
     private EmailService $emailService;
 
@@ -48,6 +48,8 @@ class SiteController extends Controller
                 'pageSize' => self::PAGE_SIZE,
             ],
         ]);
+
+        $dataProvider->pagination->setPage(Yii::$app->request->get('page', 1) - 1);
 
         $model = new Post();
         $model->scenario = POST::SCENARIO_CREATE;

@@ -31,6 +31,13 @@ $end = min(($currentPage + 1) * $pageSize, $totalCount);
                 'emptyTextOptions' => ['class' => 'alert alert-info'],
                 'pager' => [
                     'options' => ['class' => 'pagination'],
+                    'linkOptions' => ['class' => 'page-link'],
+                    'disabledPageCssClass' => 'disabled',
+                    'disabledListItemSubTagOptions' => ['class' => 'page-link'],
+                    'prevPageLabel' => '‹',
+                    'nextPageLabel' => '›',
+                    'firstPageLabel' => '«',
+                    'lastPageLabel' => '»',
                 ],
             ]) ?>
         </div>

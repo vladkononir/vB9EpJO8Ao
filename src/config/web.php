@@ -50,6 +50,7 @@ $config = [
             'showScriptName' => false,
             'rules' => [
                 '' => 'site/index',
+                'page/<page:\d+>' => 'site/index',
                 'post/edit/<id:\d+>' => 'post/edit',
                 'post/delete/<id:\d+>' => 'post/delete',
                 'post/view/<id:\d+>' => 'post/view',
