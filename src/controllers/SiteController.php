@@ -2,6 +2,8 @@
 
 namespace app\controllers;
 
+use app\factories\PostDataProviderFactory;
+use app\factories\PostFactory;
 use app\services\EmailService;
 use Yii;
 use app\models\Post;
@@ -13,15 +15,28 @@ class SiteController extends Controller
 {
     const FLASH_SUCCESS_CREATE = 'Сообщение успешно опубликовано! На ваш email отправлены ссылки для управления.';
     const FLASH_ERROR_CREATE = 'Произошла ошибка при публикации сообщения. Проверьте правильность заполнения формы.';
-    const PAGE_SIZE = 5;
 
     private EmailService $emailService;
+    private PostFactory $postFactory;
+    private PostDataProviderFactory $dataProviderFactory;
 
-    public function __construct($id, $module, EmailService $emailService, $config = [])
+    public function __construct
+    (
+        $id,
+        $module,
+        EmailService $emailService,
+        PostFactory $postFactory,
+        PostDataProviderFactory $dataProviderFactory,
+        $config = [],
+    )
     {
         $this->emailService = $emailService;
+        $this->postFactory = $postFactory;
+        $this->dataProviderFactory = $dataProviderFactory;
+
         parent::__construct($id, $module, $config);
     }
+
     /**
      * {@inheritdoc}
      */
@@ -40,23 +55,13 @@ class SiteController extends Controller
 
     public function actionIndex(): string|Response
     {
-        $dataProvider = new ActiveDataProvider([
-            'query' => Post::find()
-                ->where(['IS', 'deleted_at', null])
-                ->orderBy(['created_at' => SORT_DESC]),
-            'pagination' => [
-                'pageSize' => self::PAGE_SIZE,
-            ],
-        ]);
+        $dataProvider = $this->dataProviderFactory->createPostsDataProvider();
 
-        $dataProvider->pagination->setPage(Yii::$app->request->get('page', 1) - 1);
+        $post = $this->postFactory->createPost();
 
-        $model = new Post();
-        $model->scenario = POST::SCENARIO_CREATE;
-
-        if ($model->load(\Yii::$app->request->post())) {
-            if ($model->save()) {
-                $this->emailService->sendManagementEmail($model);
+        if ($post->load(\Yii::$app->request->post())) {
+            if ($post->save()) {
+                $this->emailService->sendManagementEmail($post);
 
                 Yii::$app->session->setFlash('success', self::FLASH_SUCCESS_CREATE);
 
@@ -68,7 +73,7 @@ class SiteController extends Controller
 
         return $this->render('index', [
             'dataProvider' => $dataProvider,
-            'model' => $model,
+            'model' => $post,
         ]);
     }
 }

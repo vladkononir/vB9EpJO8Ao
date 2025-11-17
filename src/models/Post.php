@@ -80,8 +80,10 @@ class Post extends ActiveRecord
     public function scenarios(): array
     {
         $scenarios = parent::scenarios();
+
         $scenarios[self::SCENARIO_CREATE] = [self::ATTR_AUTHOR_NAME, self::ATTR_EMAIL, self::ATTR_MESSAGE, self::ATTR_CAPTCHA];
         $scenarios[self::SCENARIO_UPDATE] = [self::ATTR_MESSAGE];
+
         return $scenarios;
     }
 
