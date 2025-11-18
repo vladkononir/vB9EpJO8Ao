@@ -6,6 +6,7 @@ use app\factories\PostDataProviderFactory;
 use app\factories\PostFactory;
 
 use app\services\posts\PostCreationService;
+use app\services\posts\PostNumberService;
 use app\services\posts\PostQueryService;
 use Yii;
 use yii\web\Controller;
@@ -20,6 +21,7 @@ class SiteController extends Controller
     private PostDataProviderFactory $dataProviderFactory;
     private PostCreationService $postCreationService;
     private PostQueryService $postQueryService;
+    private PostNumberService $postNumberService;
 
     public function __construct(
         $id,
@@ -28,12 +30,15 @@ class SiteController extends Controller
         PostDataProviderFactory $dataProviderFactory,
         PostCreationService $postCreationService,
         PostQueryService $postQueryService,
+        PostNumberService $postNumberService,
         $config = []
     ) {
         $this->postFactory = $postFactory;
         $this->dataProviderFactory = $dataProviderFactory;
         $this->postCreationService = $postCreationService;
         $this->postQueryService = $postQueryService;
+        $this->postNumberService = $postNumberService;
+
         parent::__construct($id, $module, $config);
     }
 
@@ -71,6 +76,7 @@ class SiteController extends Controller
         return $this->render('index', [
             'dataProvider' => $dataProvider,
             'model' => $post,
+            'postNumbers' => $this->postNumberService->getPostNumbersBatch($dataProvider),
         ]);
     }
 }

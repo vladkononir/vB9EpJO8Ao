@@ -14,19 +14,6 @@ class PostQueryService
         return Post::findOne($id);
     }
 
-    public function findByToken(string $token): ?Post
-    {
-        return Post::findOne(['token' => $token]);
-    }
-
-    public function getPostsCountByIp(string $ipAddress): int
-    {
-        return Post::find()
-            ->where(['ip_address' => $ipAddress])
-            ->andWhere(['IS', 'deleted_at', null])
-            ->count();
-    }
-
     public function getPostNumberByIp(Post $post): int
     {
         return (int) Post::find()
@@ -60,5 +47,15 @@ class PostQueryService
         }
 
         return $post;
+    }
+
+    public function findPostsByIp(array $ipAddresses): array
+    {
+        return Post::find()
+            ->where(['ip_address' => $ipAddresses])
+            ->andWhere(['IS', 'deleted_at', null])
+            ->orderBy(['ip_address' => SORT_ASC, 'created_at' => SORT_ASC, 'id' => SORT_ASC])
+            ->asArray()
+            ->all();
     }
 }

@@ -8,9 +8,7 @@ use app\services\posts\PostQueryService;
 use app\services\posts\PostUpdateService;
 use app\services\PostService;
 use Yii;
-use app\models\Post;
 use yii\web\Controller;
-use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
 class PostController extends Controller
@@ -111,6 +109,7 @@ class PostController extends Controller
             'model' => $post,
             'canEdit' => $this->postAccessService->canEdit($post),
             'canDelete' => $this->postAccessService->canDelete($post),
+            'postsCount' => $this->postQueryService->getPostNumberByIp($post),
         ]);
     }
 }

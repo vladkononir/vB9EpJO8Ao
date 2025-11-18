@@ -12,11 +12,9 @@ class Post extends ActiveRecord
     const ALLOWED_HTML_TAGS = '<b><i><s>';
     const ERROR_ALLOWED_HTML_TAGS = 'Разрешены только HTML теги: <b>, <i>, <s>. Пожалуйста, удалите другие HTML теги из сообщения.';
     const ERROR_EMPTY_MESSAGE = 'Сообщение не может состоять только из пробелов или HTML тегов.';
-    const ERROR_COOLDOWN = 'Вы можете отправить следующее сообщение только после %s';
 
     const EDIT_TIME_LIMIT = 12 * 3600;
     const DELETE_TIME_LIMIT = 14 * 24 * 3600;
-    const POST_COOLDOWN = 3 * 60;
 
     const AUTHOR_NAME_MIN_LENGTH = 2;
     const AUTHOR_NAME_MAX_LENGTH = 15;
@@ -135,28 +133,6 @@ class Post extends ActiveRecord
     public function isDeleted(): bool
     {
         return $this->deleted_at !== null;
-    }
-
-    public function softDelete(): bool
-    {
-        $this->deleted_at = time();
-
-        return $this->save(false, ['deleted_at']);
-    }
-
-    public function getPostNumberByIp(): int
-    {
-        return (int) self::find()
-            ->where(['ip_address' => $this->ip_address])
-            ->andWhere(['OR',
-                ['<', 'created_at', $this->created_at],
-                ['AND',
-                    ['=', 'created_at', $this->created_at],
-                    ['<=', 'id', $this->id]
-                ]
-            ])
-            ->andWhere(['IS', 'deleted_at', null])
-            ->count();
     }
 
     public function getMaskedIp(): string

@@ -6,7 +6,7 @@ use yii\helpers\HtmlPurifier;
 /** @var app\models\Post $model */
 /** @var yii\web\View $this */
 
-$postsCount = $model->getPostNumberByIp();
+$postsCount = $postNumbers[$model->id] ?? 1;
 ?>
 
 <div class="card card-default mb-3" style="cursor: pointer;" onclick="window.location='<?= Yii::$app->urlManager->createUrl(['post/view', 'id' => $model->id]) ?>'">

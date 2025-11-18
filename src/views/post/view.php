@@ -7,7 +7,6 @@ use yii\helpers\HtmlPurifier;
 /** @var app\models\Post $model */
 
 $this->title = 'Сообщение от ' . Html::encode($model->author_name) . ' - StoryValut';
-$postsCount = $model->getPostNumberByIp();
 ?>
 <div class="post-view">
     <div class="row">

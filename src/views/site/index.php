@@ -26,6 +26,7 @@ $end = min(($currentPage + 1) * $pageSize, $totalCount);
             <?= ListView::widget([
                 'dataProvider' => $dataProvider,
                 'itemView' => '_post',
+                'viewParams' => ['postNumbers' => $postNumbers],
                 'layout' => "{items}\n{pager}",
                 'emptyText' => 'Пока нет сообщений.',
                 'emptyTextOptions' => ['class' => 'alert alert-info'],
