@@ -2,6 +2,7 @@
 
 namespace app\controllers;
 
+use app\models\Post;
 use app\services\posts\AccessChecker;
 use app\services\posts\PostRemover;
 use app\services\posts\PostFinder;
@@ -25,30 +26,24 @@ class PostController extends Controller
     const LOG_SAVE_ERRORS = 'Ошибка сохранения: %s';
 
     private PostFinder $postFinder;
-    private PostUpdater $postUpdater;
-    private PostRemover $postRemover;
     private AccessChecker $accessChecker;
 
     public function __construct(
         $id,
         $module,
         PostFinder $postFinder,
-        PostUpdater $postUpdater,
-        PostRemover $postRemover,
         AccessChecker $accessChecker,
         $config = []
     ) {
         $this->postFinder = $postFinder;
-        $this->postUpdater = $postUpdater;
-        $this->postRemover = $postRemover;
         $this->accessChecker = $accessChecker;
 
         parent::__construct($id, $module, $config);
     }
 
-    public function actionEdit(int $id): string|Response
+    public function actionEdit(string $token): string|Response
     {
-        $post = $this->postFinder->findPost($id);
+        $post = $this->postFinder->findPostByToken($token);
 
         if (!$this->accessChecker->canEdit($post)) {
             Yii::$app->session->setFlash('error', self::FLASH_ERROR_EDIT_EXPIRED);
@@ -56,11 +51,13 @@ class PostController extends Controller
             return $this->redirect(['site/index']);
         }
 
+        $post->scenario = Post::SCENARIO_UPDATE;
+
         if ($post->load(Yii::$app->request->post())) {
             Yii::info(sprintf(self::LOG_FORM_DATA, print_r($post->attributes, true)));
             Yii::info(sprintf(self::LOG_VALIDATION_ERRORS, print_r($post->errors, true)));
 
-            if ($this->postUpdater->update($post)) {
+            if ($post->save()) {
                 Yii::$app->session->setFlash('success', self::FLASH_SUCCESS_EDIT);
 
                 return $this->redirect(['site/index']);
@@ -75,9 +72,9 @@ class PostController extends Controller
         ]);
     }
 
-    public function actionDelete(int $id): string|Response
+    public function actionDelete(string $token): string|Response
     {
-        $post = $this->postFinder->findPost($id);
+        $post = $this->postFinder->findPostByToken($token);
 
         if (!$this->accessChecker->canDelete($post)) {
             Yii::$app->session->setFlash('error', self::FLASH_ERROR_DELETE_EXPIRED);
@@ -86,7 +83,7 @@ class PostController extends Controller
         }
 
         if (Yii::$app->request->isPost) {
-            if ($this->postRemover->softDelete($post)) {
+            if ($post->softDelete()) {
                 Yii::$app->session->setFlash('success', self::FLASH_SUCCESS_DELETE);
 
                 return $this->redirect(['site/index']);
@@ -106,8 +103,6 @@ class PostController extends Controller
 
         return $this->render('view', [
             'model' => $post,
-            'canEdit' => $this->accessChecker->canEdit($post),
-            'canDelete' => $this->accessChecker->canDelete($post),
             'postsCount' => $this->postFinder->getPostNumberByIp($post),
         ]);
     }

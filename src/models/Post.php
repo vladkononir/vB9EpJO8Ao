@@ -156,4 +156,11 @@ class Post extends ActiveRecord
         
         return $this->ip_address;
     }
+
+    public function softDelete(): bool
+    {
+        $this->deleted_at = time();
+
+        return $this->save(false, ['deleted_at']);
+    }
 }

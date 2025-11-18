@@ -38,20 +38,6 @@ $this->title = 'Сообщение от ' . Html::encode($model->author_name) . 
                     </div>
 
                     <div class="text-center">
-                        <?php if ($canEdit): ?>
-                            <?= Html::a('Редактировать', ['edit', 'id' => $model->id], ['class' => 'btn btn-primary']) ?>
-                        <?php endif; ?>
-
-                        <?php if ($canDelete): ?>
-                            <?= Html::a('Удалить', ['delete', 'id' => $model->id], [
-                                'class' => 'btn btn-danger',
-                                'data' => [
-                                    'confirm' => 'Вы уверены, что хотите удалить это сообщение?',
-                                    'method' => 'post',
-                                ],
-                            ]) ?>
-                        <?php endif; ?>
-
                         <?= Html::a('На главную', ['site/index'], ['class' => 'btn btn-default']) ?>
                     </div>
                 </div>

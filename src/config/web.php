@@ -34,6 +34,7 @@ $config = [
             'viewPath' => '@app/mail',
             // send all mails to a file by default.
             'useFileTransport' => true,
+            'fileTransportPath' => '@runtime/mail',
         ],
         'log' => [
             'traceLevel' => YII_DEBUG ? 3 : 0,
@@ -51,9 +52,9 @@ $config = [
             'rules' => [
                 '' => 'site/index',
                 'page/<page:\d+>' => 'site/index',
-                'post/edit/<id:\d+>' => 'post/edit',
-                'post/delete/<id:\d+>' => 'post/delete',
-                'post/view/<id:\d+>' => 'post/view',
+                'post/edit/<token:[\w-]+>' => 'post/edit',
+                'post/delete/<token:[\w-]+>' => 'post/delete',
+                'post/view/<id:\d+>' => 'post/view'
             ],
         ],
     ],

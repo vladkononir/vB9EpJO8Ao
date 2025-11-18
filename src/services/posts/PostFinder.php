@@ -53,4 +53,18 @@ class PostFinder
             ->asArray()
             ->all();
     }
+
+    public function findPostByToken(string $token): Post
+    {
+        $post = Post::findOne([
+            'token' => $token,
+            'deleted_at' => null,
+        ]);
+
+        if ($post === null) {
+            throw new NotFoundHttpException(self::ERROR_POST_NOT_FOUND);
+        }
+
+        return $post;
+    }
 }

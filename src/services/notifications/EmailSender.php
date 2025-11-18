@@ -17,8 +17,8 @@ class EmailSender
 
     public function send(Post $post): bool
     {
-        $editLink = Yii::$app->urlManager->createAbsoluteUrl(['post/edit', 'id' => $post->id]);
-        $deleteLink = Yii::$app->urlManager->createAbsoluteUrl(['post/delete', 'id' => $post->id]);
+        $editLink = Yii::$app->urlManager->createAbsoluteUrl(['post/edit', 'token' => $post->token]);
+        $deleteLink = Yii::$app->urlManager->createAbsoluteUrl(['post/delete', 'token' => $post->token]);
 
         $editDeadline = Yii::$app->formatter->asDatetime($post->created_at + 12 * 3600, 'dd.MM.yyyy HH:mm');
         $deleteDeadline = Yii::$app->formatter->asDatetime($post->created_at + 14 * 24 * 3600, 'dd.MM.yyyy HH:mm');
