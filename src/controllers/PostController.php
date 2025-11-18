@@ -2,6 +2,10 @@
 
 namespace app\controllers;
 
+use app\services\posts\PostAccessService;
+use app\services\posts\PostDeletionService;
+use app\services\posts\PostQueryService;
+use app\services\posts\PostUpdateService;
 use app\services\PostService;
 use Yii;
 use app\models\Post;
@@ -23,51 +27,69 @@ class PostController extends Controller
     const LOG_VALIDATION_ERRORS = 'Ошибки валидации: %s';
     const LOG_SAVE_ERRORS = 'Ошибка сохранения: %s';
 
+    private PostQueryService $postQueryService;
+    private PostUpdateService $postUpdateService;
+    private PostDeletionService $postDeletionService;
+    private PostAccessService $postAccessService;
+
+    public function __construct(
+        $id,
+        $module,
+        PostQueryService $postQueryService,
+        PostUpdateService $postUpdateService,
+        PostDeletionService $postDeletionService,
+        PostAccessService $postAccessService,
+        $config = []
+    ) {
+        $this->postQueryService = $postQueryService;
+        $this->postUpdateService = $postUpdateService;
+        $this->postDeletionService = $postDeletionService;
+        $this->postAccessService = $postAccessService;
+
+        parent::__construct($id, $module, $config);
+    }
+
     public function actionEdit(int $id): string|Response
     {
-        $model = Post::findOne($id)
-            ?? throw new NotFoundHttpException(self::ERROR_POST_NOT_FOUND);
+        $post = $this->postQueryService->findPost($id);
 
-        $model->scenario = Post::SCENARIO_UPDATE;
-
-        if (!$model->canEdit()) {
+        if (!$this->postAccessService->canEdit($post)) {
             Yii::$app->session->setFlash('error', self::FLASH_ERROR_EDIT_EXPIRED);
 
             return $this->redirect(['site/index']);
         }
 
-        if ($model->load(Yii::$app->request->post())) {
-            Yii::info(sprintf(self::LOG_FORM_DATA, print_r($model->attributes, true)));
-            Yii::info(sprintf(self::LOG_VALIDATION_ERRORS, print_r($model->errors, true)));
+        if ($post->load(Yii::$app->request->post())) {
+            Yii::info(sprintf(self::LOG_FORM_DATA, print_r($post->attributes, true)));
+            Yii::info(sprintf(self::LOG_VALIDATION_ERRORS, print_r($post->errors, true)));
 
-            if ($model->save()) {
+            if ($this->postUpdateService->updatePost($post)) {
                 Yii::$app->session->setFlash('success', self::FLASH_SUCCESS_EDIT);
 
                 return $this->redirect(['site/index']);
             } else {
-                Yii::error(sprintf(self::LOG_SAVE_ERRORS, print_r($model->errors, true)));
+                Yii::error(sprintf(self::LOG_SAVE_ERRORS, print_r($post->errors, true)));
                 Yii::$app->session->setFlash('error', self::FLASH_ERROR_EDIT);
             }
         }
 
         return $this->render('edit', [
-            'model' => $model,
+            'model' => $post,
         ]);
     }
 
     public function actionDelete(int $id): string|Response
     {
-        $model = Post::findOne($id)
-            ?? throw new NotFoundHttpException(self::ERROR_POST_NOT_FOUND);
+        $post = $this->postQueryService->findPost($id);
 
-        if (!$model->canDelete()) {
+        if (!$this->postAccessService->canDelete($post)) {
             Yii::$app->session->setFlash('error', self::FLASH_ERROR_DELETE_EXPIRED);
 
             return $this->redirect(['site/index']);
         }
 
         if (Yii::$app->request->isPost) {
-            if ($model->softDelete()) {
+            if ($this->postDeletionService->softDelete($post)) {
                 Yii::$app->session->setFlash('success', self::FLASH_SUCCESS_DELETE);
 
                 return $this->redirect(['site/index']);
@@ -77,17 +99,18 @@ class PostController extends Controller
         }
 
         return $this->render('delete', [
-            'model' => $model,
+            'model' => $post,
         ]);
     }
 
     public function actionView(int $id): string
     {
-        $model = Post::findOne($id)
-            ?? throw new NotFoundHttpException(self::ERROR_POST_NOT_FOUND);
+        $post = $this->postQueryService->findPost($id);
 
         return $this->render('view', [
-            'model' => $model,
+            'model' => $post,
+            'canEdit' => $this->postAccessService->canEdit($post),
+            'canDelete' => $this->postAccessService->canDelete($post),
         ]);
     }
 }

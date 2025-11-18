@@ -4,10 +4,10 @@ namespace app\controllers;
 
 use app\factories\PostDataProviderFactory;
 use app\factories\PostFactory;
-use app\services\EmailService;
+
+use app\services\posts\PostCreationService;
+use app\services\posts\PostQueryService;
 use Yii;
-use app\models\Post;
-use yii\data\ActiveDataProvider;
 use yii\web\Controller;
 use yii\web\Response;
 
@@ -16,24 +16,24 @@ class SiteController extends Controller
     const FLASH_SUCCESS_CREATE = 'Сообщение успешно опубликовано! На ваш email отправлены ссылки для управления.';
     const FLASH_ERROR_CREATE = 'Произошла ошибка при публикации сообщения. Проверьте правильность заполнения формы.';
 
-    private EmailService $emailService;
     private PostFactory $postFactory;
     private PostDataProviderFactory $dataProviderFactory;
+    private PostCreationService $postCreationService;
+    private PostQueryService $postQueryService;
 
-    public function __construct
-    (
+    public function __construct(
         $id,
         $module,
-        EmailService $emailService,
         PostFactory $postFactory,
         PostDataProviderFactory $dataProviderFactory,
-        $config = [],
-    )
-    {
-        $this->emailService = $emailService;
+        PostCreationService $postCreationService,
+        PostQueryService $postQueryService,
+        $config = []
+    ) {
         $this->postFactory = $postFactory;
         $this->dataProviderFactory = $dataProviderFactory;
-
+        $this->postCreationService = $postCreationService;
+        $this->postQueryService = $postQueryService;
         parent::__construct($id, $module, $config);
     }
 
@@ -56,13 +56,10 @@ class SiteController extends Controller
     public function actionIndex(): string|Response
     {
         $dataProvider = $this->dataProviderFactory->createPostsDataProvider();
-
         $post = $this->postFactory->createPost();
 
-        if ($post->load(\Yii::$app->request->post())) {
-            if ($post->save()) {
-                $this->emailService->sendManagementEmail($post);
-
+        if ($post->load(Yii::$app->request->post())) {
+            if ($this->postCreationService->createPost($post)) {
                 Yii::$app->session->setFlash('success', self::FLASH_SUCCESS_CREATE);
 
                 return $this->refresh();

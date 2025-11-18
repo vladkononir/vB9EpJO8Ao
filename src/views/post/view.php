@@ -39,11 +39,11 @@ $postsCount = $model->getPostNumberByIp();
                     </div>
 
                     <div class="text-center">
-                        <?php if ($model->canEdit()): ?>
+                        <?php if ($canEdit): ?>
                             <?= Html::a('Редактировать', ['edit', 'id' => $model->id], ['class' => 'btn btn-primary']) ?>
                         <?php endif; ?>
 
-                        <?php if ($model->canDelete()): ?>
+                        <?php if ($canDelete): ?>
                             <?= Html::a('Удалить', ['delete', 'id' => $model->id], [
                                 'class' => 'btn btn-danger',
                                 'data' => [

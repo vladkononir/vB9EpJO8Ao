@@ -3,6 +3,7 @@
 namespace app\services\posts;
 
 use app\models\Post;
+use yii\web\NotFoundHttpException;
 
 class PostQueryService
 {

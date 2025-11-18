@@ -3,6 +3,7 @@
 namespace app\models;
 
 use Yii;
+use yii\behaviors\AttributeBehavior;
 use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
 
@@ -50,6 +51,15 @@ class Post extends ActiveRecord
                 'createdAtAttribute' => 'created_at',
                 'updatedAtAttribute' => 'updated_at',
                 'value' => time(),
+            ],
+            [
+                'class' => AttributeBehavior::class,
+                'attributes' => [
+                    self::EVENT_BEFORE_INSERT => 'token',
+                ],
+                'value' => function () {
+                    return Yii::$app->security->generateRandomString(32);
+                },
             ],
         ];
     }
@@ -122,36 +132,6 @@ class Post extends ActiveRecord
         ];
     }
 
-    public function canEdit(): bool
-    {
-        if ($this->isDeleted()) {
-            return false;
-        }
-
-        $timeSinceCreation = time() - $this->created_at;
-
-        if ($timeSinceCreation <= self::EDIT_TIME_LIMIT) {
-            return true;
-        }
-
-        return false;
-    }
-
-    public function canDelete(): bool
-    {
-        if ($this->isDeleted()) {
-            return false;
-        }
-
-        $timeSinceCreation = time() - $this->created_at;
-
-        if ($timeSinceCreation <= self::DELETE_TIME_LIMIT) {
-            return true;
-        }
-
-        return false;
-    }
-
     public function isDeleted(): bool
     {
         return $this->deleted_at !== null;
@@ -162,14 +142,6 @@ class Post extends ActiveRecord
         $this->deleted_at = time();
 
         return $this->save(false, ['deleted_at']);
-    }
-
-    public function getPostsCountByIp(): int
-    {
-        return self::find()
-            ->where(['ip_address' => $this->ip_address])
-            ->andWhere(['IS', 'deleted_at', null])
-            ->count();
     }
 
     public function getPostNumberByIp(): int
@@ -207,35 +179,5 @@ class Post extends ActiveRecord
         }
         
         return $this->ip_address;
-    }
-
-    public function beforeSave($insert): bool
-    {
-        if (!parent::beforeSave($insert)) {
-            return false;
-        }
-
-        if ($insert) {
-            $this->ip_address = Yii::$app->request->userIP;
-
-            $lastPost = self::find()
-                ->where(['ip_address' => $this->ip_address])
-                ->andWhere(['IS', 'deleted_at', null])
-                ->orderBy(['created_at' => SORT_DESC])
-                ->one();
-
-            if ($lastPost && (time() - $lastPost->created_at) < self::POST_COOLDOWN) {
-                $nextTime = $lastPost->created_at + self::POST_COOLDOWN;
-
-                $formattedTime = Yii::$app->formatter->asDatetime($nextTime, 'php:d.m.Y H:i');
-
-                $errorMessage = sprintf(self::ERROR_COOLDOWN, $formattedTime);
-                $this->addError(self::ATTR_MESSAGE, $errorMessage);
-
-                return false;
-            }
-        }
-
-        return true;
     }
 }
