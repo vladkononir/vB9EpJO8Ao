@@ -2,10 +2,10 @@
 
 namespace app\controllers;
 
-use app\services\posts\PostAccessService;
-use app\services\posts\PostDeletionService;
-use app\services\posts\PostQueryService;
-use app\services\posts\PostUpdateService;
+use app\services\posts\AccessChecker;
+use app\services\posts\PostRemover;
+use app\services\posts\PostFinder;
+use app\services\posts\PostUpdater;
 use app\services\PostService;
 use Yii;
 use yii\web\Controller;
@@ -19,39 +19,38 @@ class PostController extends Controller
     const FLASH_ERROR_EDIT = 'Произошла ошибка при редактировании сообщения.';
     const FLASH_SUCCESS_DELETE = 'Сообщение успешно удалено.';
     const FLASH_ERROR_DELETE = 'Произошла ошибка при удалении сообщения.';
-    const ERROR_POST_NOT_FOUND = 'Запрашиваемое сообщение не найдено.';
 
     const LOG_FORM_DATA = 'Данные формы: %s';
     const LOG_VALIDATION_ERRORS = 'Ошибки валидации: %s';
     const LOG_SAVE_ERRORS = 'Ошибка сохранения: %s';
 
-    private PostQueryService $postQueryService;
-    private PostUpdateService $postUpdateService;
-    private PostDeletionService $postDeletionService;
-    private PostAccessService $postAccessService;
+    private PostFinder $postFinder;
+    private PostUpdater $postUpdater;
+    private PostRemover $postRemover;
+    private AccessChecker $accessChecker;
 
     public function __construct(
         $id,
         $module,
-        PostQueryService $postQueryService,
-        PostUpdateService $postUpdateService,
-        PostDeletionService $postDeletionService,
-        PostAccessService $postAccessService,
+        PostFinder $postFinder,
+        PostUpdater $postUpdater,
+        PostRemover $postRemover,
+        AccessChecker $accessChecker,
         $config = []
     ) {
-        $this->postQueryService = $postQueryService;
-        $this->postUpdateService = $postUpdateService;
-        $this->postDeletionService = $postDeletionService;
-        $this->postAccessService = $postAccessService;
+        $this->postFinder = $postFinder;
+        $this->postUpdater = $postUpdater;
+        $this->postRemover = $postRemover;
+        $this->accessChecker = $accessChecker;
 
         parent::__construct($id, $module, $config);
     }
 
     public function actionEdit(int $id): string|Response
     {
-        $post = $this->postQueryService->findPost($id);
+        $post = $this->postFinder->findPost($id);
 
-        if (!$this->postAccessService->canEdit($post)) {
+        if (!$this->accessChecker->canEdit($post)) {
             Yii::$app->session->setFlash('error', self::FLASH_ERROR_EDIT_EXPIRED);
 
             return $this->redirect(['site/index']);
@@ -61,7 +60,7 @@ class PostController extends Controller
             Yii::info(sprintf(self::LOG_FORM_DATA, print_r($post->attributes, true)));
             Yii::info(sprintf(self::LOG_VALIDATION_ERRORS, print_r($post->errors, true)));
 
-            if ($this->postUpdateService->updatePost($post)) {
+            if ($this->postUpdater->update($post)) {
                 Yii::$app->session->setFlash('success', self::FLASH_SUCCESS_EDIT);
 
                 return $this->redirect(['site/index']);
@@ -78,16 +77,16 @@ class PostController extends Controller
 
     public function actionDelete(int $id): string|Response
     {
-        $post = $this->postQueryService->findPost($id);
+        $post = $this->postFinder->findPost($id);
 
-        if (!$this->postAccessService->canDelete($post)) {
+        if (!$this->accessChecker->canDelete($post)) {
             Yii::$app->session->setFlash('error', self::FLASH_ERROR_DELETE_EXPIRED);
 
             return $this->redirect(['site/index']);
         }
 
         if (Yii::$app->request->isPost) {
-            if ($this->postDeletionService->softDelete($post)) {
+            if ($this->postRemover->softDelete($post)) {
                 Yii::$app->session->setFlash('success', self::FLASH_SUCCESS_DELETE);
 
                 return $this->redirect(['site/index']);
@@ -103,13 +102,13 @@ class PostController extends Controller
 
     public function actionView(int $id): string
     {
-        $post = $this->postQueryService->findPost($id);
+        $post = $this->postFinder->findPost($id);
 
         return $this->render('view', [
             'model' => $post,
-            'canEdit' => $this->postAccessService->canEdit($post),
-            'canDelete' => $this->postAccessService->canDelete($post),
-            'postsCount' => $this->postQueryService->getPostNumberByIp($post),
+            'canEdit' => $this->accessChecker->canEdit($post),
+            'canDelete' => $this->accessChecker->canDelete($post),
+            'postsCount' => $this->postFinder->getPostNumberByIp($post),
         ]);
     }
 }

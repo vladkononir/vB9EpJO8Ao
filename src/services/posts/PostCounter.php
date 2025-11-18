@@ -4,14 +4,14 @@ namespace app\services\posts;
 
 use yii\data\ActiveDataProvider;
 
-class PostNumberService
+class PostCounter
 {
-    private PostQueryService $postQueryService;
+    private PostFinder $postFinder;
 
     public function __construct(
-        PostQueryService $postQueryService
+        PostFinder $postFinder
     ) {
-        $this->postQueryService = $postQueryService;
+        $this->postFinder = $postFinder;
     }
 
     public function getPostNumbersBatch(ActiveDataProvider $dataProvider): array
@@ -25,7 +25,7 @@ class PostNumberService
         $postIds = $this->extractPostIds($posts);
         $ipAddresses = $this->extractUniqueIpAddresses($posts);
 
-        $allPosts = $this->postQueryService->findPostsByIp($ipAddresses);
+        $allPosts = $this->postFinder->findPostsByIp($ipAddresses);
 
         return $this->calculatePostNumbers($allPosts, $postIds);
     }

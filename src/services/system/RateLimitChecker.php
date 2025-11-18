@@ -2,24 +2,24 @@
 
 namespace app\services\system;
 
-use app\services\posts\PostQueryService;
+use app\services\posts\PostFinder;
 use Yii;
 
-class RateLimitService
+class RateLimitChecker
 {
     const ERROR_COOLDOWN = 'Вы можете отправить следующее сообщение только после %s';
     const POST_COOLDOWN = 3 * 60;
 
-    private PostQueryService $postQueryService;
+    private PostFinder $postFinder;
 
-    public function __construct(PostQueryService $postQueryService)
+    public function __construct(PostFinder $postFinder)
     {
-        $this->postQueryService = $postQueryService;
+        $this->postFinder = $postFinder;
     }
 
-    public function checkRateLimit(string $ipAddress): ?string
+    public function check(string $ipAddress): ?string
     {
-        $lastPost = $this->postQueryService->getLastPost($ipAddress);
+        $lastPost = $this->postFinder->getLastPost($ipAddress);
 
         if ($lastPost && (time() - $lastPost->created_at) < self::POST_COOLDOWN) {
             $nextTime = $lastPost->created_at + self::POST_COOLDOWN;

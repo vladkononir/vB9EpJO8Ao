@@ -4,7 +4,7 @@ namespace app\services\posts;
 
 use app\models\Post;
 
-class PostAccessService
+class AccessChecker
 {
     public function canEdit(Post $post): bool
     {

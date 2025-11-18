@@ -5,9 +5,9 @@ namespace app\controllers;
 use app\factories\PostDataProviderFactory;
 use app\factories\PostFactory;
 
-use app\services\posts\PostCreationService;
-use app\services\posts\PostNumberService;
-use app\services\posts\PostQueryService;
+use app\services\posts\PostCreator;
+use app\services\posts\PostCounter;
+use app\services\posts\PostFinder;
 use Yii;
 use yii\web\Controller;
 use yii\web\Response;
@@ -19,25 +19,22 @@ class SiteController extends Controller
 
     private PostFactory $postFactory;
     private PostDataProviderFactory $dataProviderFactory;
-    private PostCreationService $postCreationService;
-    private PostQueryService $postQueryService;
-    private PostNumberService $postNumberService;
+    private PostCreator $postCreator;
+    private PostCounter $postCounter;
 
     public function __construct(
         $id,
         $module,
         PostFactory $postFactory,
         PostDataProviderFactory $dataProviderFactory,
-        PostCreationService $postCreationService,
-        PostQueryService $postQueryService,
-        PostNumberService $postNumberService,
+        PostCreator $postCreator,
+        PostCounter $postCounter,
         $config = []
     ) {
         $this->postFactory = $postFactory;
         $this->dataProviderFactory = $dataProviderFactory;
-        $this->postCreationService = $postCreationService;
-        $this->postQueryService = $postQueryService;
-        $this->postNumberService = $postNumberService;
+        $this->postCreator = $postCreator;
+        $this->postCounter = $postCounter;
 
         parent::__construct($id, $module, $config);
     }
@@ -60,11 +57,11 @@ class SiteController extends Controller
 
     public function actionIndex(): string|Response
     {
-        $dataProvider = $this->dataProviderFactory->createPostsDataProvider();
-        $post = $this->postFactory->createPost();
+        $dataProvider = $this->dataProviderFactory->createFromRequest();
+        $post = $this->postFactory->createFromRequest();
 
         if ($post->load(Yii::$app->request->post())) {
-            if ($this->postCreationService->createPost($post)) {
+            if ($this->postCreator->create($post)) {
                 Yii::$app->session->setFlash('success', self::FLASH_SUCCESS_CREATE);
 
                 return $this->refresh();
@@ -76,7 +73,7 @@ class SiteController extends Controller
         return $this->render('index', [
             'dataProvider' => $dataProvider,
             'model' => $post,
-            'postNumbers' => $this->postNumberService->getPostNumbersBatch($dataProvider),
+            'postNumbers' => $this->postCounter->getPostNumbersBatch($dataProvider),
         ]);
     }
 }

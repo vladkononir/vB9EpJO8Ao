@@ -4,7 +4,7 @@ namespace app\services\posts;
 
 use app\models\Post;
 
-class PostDeletionService
+class PostRemover
 {
     public function softDelete(Post $post): bool
     {

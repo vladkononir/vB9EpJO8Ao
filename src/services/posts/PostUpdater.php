@@ -4,9 +4,9 @@ namespace app\services\posts;
 
 use app\models\Post;
 
-class PostUpdateService
+class PostUpdater
 {
-    public function updatePost(Post $post): bool
+    public function update(Post $post): bool
     {
         $post->scenario = Post::SCENARIO_UPDATE;
 

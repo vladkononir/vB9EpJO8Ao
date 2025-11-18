@@ -5,7 +5,7 @@ namespace app\services\notifications;
 use app\models\Post;
 use Yii;
 
-class EmailService
+class EmailSender
 {
     const SENDER_EMAIL = 'noreply@storyvalut.com';
     const SENDER_NAME = 'StoryValut';
@@ -15,7 +15,7 @@ class EmailService
     const LOG_ERROR_SEND = 'Не удалось сохранить email для поста ID: %d';
     const LOG_ERROR_EXCEPTION = 'Ошибка при создании email: %s';
 
-    public function sendManagementEmail(Post $post): bool
+    public function send(Post $post): bool
     {
         $editLink = Yii::$app->urlManager->createAbsoluteUrl(['post/edit', 'id' => $post->id]);
         $deleteLink = Yii::$app->urlManager->createAbsoluteUrl(['post/delete', 'id' => $post->id]);

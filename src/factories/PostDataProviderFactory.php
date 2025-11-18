@@ -10,7 +10,7 @@ class PostDataProviderFactory
 {
     const DEFAULT_PAGE_SIZE = 5;
 
-    public function createPostsDataProvider(int $pageSize = self::DEFAULT_PAGE_SIZE): ActiveDataProvider
+    public function createFromRequest(int $pageSize = self::DEFAULT_PAGE_SIZE): ActiveDataProvider
     {
          $postDataProvider = new ActiveDataProvider([
              'query' => Post::find()

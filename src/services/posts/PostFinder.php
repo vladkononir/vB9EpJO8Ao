@@ -5,14 +5,9 @@ namespace app\services\posts;
 use app\models\Post;
 use yii\web\NotFoundHttpException;
 
-class PostQueryService
+class PostFinder
 {
     const ERROR_POST_NOT_FOUND = 'Запрашиваемое сообщение не найдено.';
-
-    public function findById(int $id): ?Post
-    {
-        return Post::findOne($id);
-    }
 
     public function getPostNumberByIp(Post $post): int
     {
@@ -40,7 +35,7 @@ class PostQueryService
 
     public function findPost(int $id): ?Post
     {
-        $post = $this->findById($id);
+        $post = Post::findOne($id);
 
         if ($post === null) {
             throw new NotFoundHttpException(self::ERROR_POST_NOT_FOUND);
