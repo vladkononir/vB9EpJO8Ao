@@ -1,6 +1,6 @@
 <?php
 
-namespace app\services;
+namespace app\services\notifications;
 
 use app\models\Post;
 use Yii;

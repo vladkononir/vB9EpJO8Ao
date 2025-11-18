@@ -1,7 +1,8 @@
 <?php
 
-namespace app\services;
+namespace app\services\system;
 
+use app\services\posts\PostQueryService;
 use Yii;
 
 class RateLimitService

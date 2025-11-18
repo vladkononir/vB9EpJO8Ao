@@ -1,11 +1,13 @@
 <?php
 
-namespace app\services;
+namespace app\services\posts;
 
 use app\models\Post;
 
 class PostQueryService
 {
+    const ERROR_POST_NOT_FOUND = 'Запрашиваемое сообщение не найдено.';
+
     public function findById(int $id): ?Post
     {
         return Post::findOne($id);
@@ -46,5 +48,16 @@ class PostQueryService
             ->andWhere(['IS', 'deleted_at', null])
             ->orderBy(['created_at' => SORT_DESC])
             ->one();
+    }
+
+    public function findPost(int $id): ?Post
+    {
+        $post = $this->findById($id);
+
+        if ($post === null) {
+            throw new NotFoundHttpException(self::ERROR_POST_NOT_FOUND);
+        }
+
+        return $post;
     }
 }

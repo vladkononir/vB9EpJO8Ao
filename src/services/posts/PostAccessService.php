@@ -1,6 +1,6 @@
 <?php
 
-namespace app\services;
+namespace app\services\posts;
 
 use app\models\Post;
 
