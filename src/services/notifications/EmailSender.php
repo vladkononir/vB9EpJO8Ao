@@ -47,6 +47,7 @@ class EmailSender
 
         } catch (\Exception $e) {
             Yii::error(sprintf(self::LOG_ERROR_EXCEPTION, $e->getMessage()));
+
             return false;
         }
     }

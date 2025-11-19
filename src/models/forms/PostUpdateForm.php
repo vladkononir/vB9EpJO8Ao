@@ -43,11 +43,6 @@ class PostUpdateForm extends Model
         return $this->post->save();
     }
 
-    public function getPost(): Post
-    {
-        return $this->post;
-    }
-
     public function getMessage(): string
     {
         return $this->message;

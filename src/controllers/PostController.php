@@ -3,7 +3,7 @@
 namespace app\controllers;
 
 use app\factories\FormFactory;
-use app\models\Post;
+use app\services\errorManagement\ErrorMapper;
 use app\services\posts\AccessChecker;
 use app\services\posts\PostRemover;
 use app\services\posts\PostFinder;
@@ -24,7 +24,6 @@ class PostController extends Controller
 
     const LOG_FORM_DATA = 'Данные формы: %s';
     const LOG_VALIDATION_ERRORS = 'Ошибки валидации: %s';
-    const LOG_SAVE_ERRORS = 'Ошибка сохранения: %s';
 
     private PostFinder $postFinder;
     private AccessChecker $accessChecker;
@@ -66,8 +65,9 @@ class PostController extends Controller
 
                 return $this->redirect(['site/index']);
             } else {
-                Yii::error(sprintf(self::LOG_SAVE_ERRORS, print_r($post->errors, true)));
                 Yii::$app->session->setFlash('error', self::FLASH_ERROR_EDIT);
+
+                ErrorMapper::mapErrors($post, $form);
             }
         }
 

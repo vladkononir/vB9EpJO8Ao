@@ -5,6 +5,7 @@ namespace app\controllers;
 use app\factories\FormFactory;
 use app\factories\PostDataProviderFactory;
 use app\factories\PostFactory;
+use app\services\errorManagement\ErrorMapper;
 use app\services\posts\PostCreator;
 use app\services\posts\PostCounter;
 use Yii;
@@ -71,6 +72,8 @@ class SiteController extends Controller
                 return $this->refresh();
             } else {
                 Yii::$app->session->setFlash('error', self::FLASH_ERROR_CREATE);
+
+                ErrorMapper::mapErrors($post, $form);
             }
         }
 
