@@ -73,8 +73,6 @@ class Post extends ActiveRecord
             [self::ATTR_MESSAGE, 'filter', 'filter' => [self::class, 'stripTagsFilter'], 'on' => self::SCENARIO_CREATE],
             [self::ATTR_MESSAGE, 'filter', 'filter' => 'trim', 'on' => self::SCENARIO_CREATE],
             [self::ATTR_MESSAGE, 'validateNotEmpty', 'on' => self::SCENARIO_CREATE],
-            [self::ATTR_CAPTCHA, 'required', 'on' => self::SCENARIO_CREATE],
-            [self::ATTR_CAPTCHA, 'captcha', 'captchaAction' => 'site/captcha', 'on' => self::SCENARIO_CREATE],
 
             [[self::ATTR_MESSAGE], 'required', 'on' => self::SCENARIO_UPDATE],
             [self::ATTR_MESSAGE, 'string', 'min' => self::MESSAGE_MIN_LENGTH, 'max' => self::MESSAGE_MAX_LENGTH, 'on' => self::SCENARIO_UPDATE],

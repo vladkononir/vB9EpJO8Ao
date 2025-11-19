@@ -4,7 +4,7 @@ use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 
 /** @var yii\web\View $this */
-/** @var app\models\Post $model */
+/** @var app\models\forms\PostUpdateForm $model */
 
 $this->title = 'Редактирование сообщения - StoryValut';
 ?>

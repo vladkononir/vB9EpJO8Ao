@@ -2,6 +2,7 @@
 
 namespace app\controllers;
 
+use app\factories\FormFactory;
 use app\models\Post;
 use app\services\posts\AccessChecker;
 use app\services\posts\PostRemover;
@@ -27,16 +28,19 @@ class PostController extends Controller
 
     private PostFinder $postFinder;
     private AccessChecker $accessChecker;
+    private FormFactory $formFactory;
 
     public function __construct(
         $id,
         $module,
         PostFinder $postFinder,
         AccessChecker $accessChecker,
+        FormFactory $formFactory,
         $config = []
     ) {
         $this->postFinder = $postFinder;
         $this->accessChecker = $accessChecker;
+        $this->formFactory = $formFactory;
 
         parent::__construct($id, $module, $config);
     }
@@ -51,13 +55,13 @@ class PostController extends Controller
             return $this->redirect(['site/index']);
         }
 
-        $post->scenario = Post::SCENARIO_UPDATE;
+        $form = $this->formFactory->postUpdateForm($post);
 
-        if ($post->load(Yii::$app->request->post())) {
+        if ($form->load(Yii::$app->request->post()) && $form->validate()) {
             Yii::info(sprintf(self::LOG_FORM_DATA, print_r($post->attributes, true)));
             Yii::info(sprintf(self::LOG_VALIDATION_ERRORS, print_r($post->errors, true)));
 
-            if ($post->save()) {
+            if ($form->updatePost()) {
                 Yii::$app->session->setFlash('success', self::FLASH_SUCCESS_EDIT);
 
                 return $this->redirect(['site/index']);
@@ -68,7 +72,7 @@ class PostController extends Controller
         }
 
         return $this->render('edit', [
-            'model' => $post,
+            'model' => $form,
         ]);
     }
 

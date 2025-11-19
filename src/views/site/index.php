@@ -7,7 +7,7 @@ use yii\widgets\Pjax;
 
 /** @var yii\web\View $this */
 /** @var yii\data\ActiveDataProvider $dataProvider */
-/** @var app\models\Post $model */
+/** @var app\models\forms\PostCreateForm $model */
 
 $this->title = 'Создание сообщений - StoryValut';
 

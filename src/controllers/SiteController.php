@@ -2,12 +2,11 @@
 
 namespace app\controllers;
 
+use app\factories\FormFactory;
 use app\factories\PostDataProviderFactory;
 use app\factories\PostFactory;
-
 use app\services\posts\PostCreator;
 use app\services\posts\PostCounter;
-use app\services\posts\PostFinder;
 use Yii;
 use yii\web\Controller;
 use yii\web\Response;
@@ -21,6 +20,7 @@ class SiteController extends Controller
     private PostDataProviderFactory $dataProviderFactory;
     private PostCreator $postCreator;
     private PostCounter $postCounter;
+    private FormFactory $formFactory;
 
     public function __construct(
         $id,
@@ -29,12 +29,14 @@ class SiteController extends Controller
         PostDataProviderFactory $dataProviderFactory,
         PostCreator $postCreator,
         PostCounter $postCounter,
+        FormFactory $formFactory,
         $config = []
     ) {
         $this->postFactory = $postFactory;
         $this->dataProviderFactory = $dataProviderFactory;
         $this->postCreator = $postCreator;
         $this->postCounter = $postCounter;
+        $this->formFactory = $formFactory;
 
         parent::__construct($id, $module, $config);
     }
@@ -58,9 +60,11 @@ class SiteController extends Controller
     public function actionIndex(): string|Response
     {
         $dataProvider = $this->dataProviderFactory->createFromRequest();
-        $post = $this->postFactory->createFromRequest();
+        $form = $this->formFactory->postCreateForm();
 
-        if ($post->load(Yii::$app->request->post())) {
+        if ($form->load(Yii::$app->request->post()) && $form->validate()) {
+            $post = $form->createPost();
+
             if ($this->postCreator->create($post)) {
                 Yii::$app->session->setFlash('success', self::FLASH_SUCCESS_CREATE);
 
@@ -72,7 +76,7 @@ class SiteController extends Controller
 
         return $this->render('index', [
             'dataProvider' => $dataProvider,
-            'model' => $post,
+            'model' => $form,
             'postNumbers' => $this->postCounter->getPostNumbersBatch($dataProvider),
         ]);
     }
